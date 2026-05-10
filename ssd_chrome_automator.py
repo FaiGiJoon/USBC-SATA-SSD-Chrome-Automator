@@ -31,15 +31,33 @@ def get_windows_volume_label(drive_letter):
         pass
     return ""
 
+def list_drives():
+    """
+    Lists all mounted drives and their details.
+    """
+    print(f"{'Device':<20} {'Mount Point':<30} {'Label/Name':<20}")
+    print("-" * 75)
+    partitions = psutil.disk_partitions(all=False)
+    for p in partitions:
+        label = ""
+        if platform.system() == "Windows":
+            label = get_windows_volume_label(p.mountpoint.strip('\\'))
+
+        print(f"{p.device:<20} {p.mountpoint:<30} {label:<20}")
+
 def find_target_ssd(identifiers):
     """
     Scans mounted partitions to find the target SSD based on provided identifiers (labels or mount points).
     """
+    # On macOS and Linux, all=False should give us what we need.
     partitions = psutil.disk_partitions(all=False)
     for p in partitions:
         # Check mountpoint and device name (covers Linux/macOS)
         for ident in identifiers:
             if ident.lower() in p.mountpoint.lower() or ident.lower() in p.device.lower():
+                # Basic check to avoid system root if searching for generic terms
+                if p.mountpoint == '/' and 'external' not in ident.lower():
+                    continue
                 return p.mountpoint
         
         # On Windows, check the volume label
@@ -58,6 +76,26 @@ def get_chrome_downloads_path():
     home = os.path.expanduser("~")
     # Standard Downloads folder is usually the same path across major OSes relative to home
     return os.path.join(home, "Downloads")
+
+def check_chrome_running():
+    """
+    Checks if Google Chrome is currently running and warns the user.
+    """
+    chrome_names = ["chrome", "google chrome", "google-chrome"]
+    running = False
+    for proc in psutil.process_iter(['name']):
+        try:
+            name = proc.info['name'].lower()
+            if any(chrome_name in name for chrome_name in chrome_names):
+                running = True
+                break
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+
+    if running:
+        print("WARNING: Google Chrome appears to be running.")
+        print("It is recommended to close Chrome before redirecting or restoring the Downloads folder.")
+        # We don't force exit, just warn.
 
 def is_junction(path):
     if platform.system() != "Windows":
@@ -78,6 +116,11 @@ def redirect_downloads(ssd_path, required_gb, target_dir_name="SSD_Downloads"):
     # 1. Check Space First (Blocking)
     if not check_space(ssd_path, required_gb):
         print("Error: Insufficient space on target SSD. Aborting redirection.")
+        sys.exit(1)
+
+    # 2. Check if target SSD is writable
+    if not os.access(ssd_path, os.W_OK):
+        print(f"Error: Target SSD at {ssd_path} is not writable. Please check permissions.")
         sys.exit(1)
 
     ssd_downloads = os.path.join(ssd_path, target_dir_name)
@@ -175,13 +218,22 @@ def restore_downloads():
 
 def main():
     parser = argparse.ArgumentParser(description="Automate Chrome downloads to an external SSD.")
-    parser.add_argument('--ids', nargs='+', default=['WD SA500', 'Crucial MX500'], 
+    default_ids = [
+        'WD SA500', 'Crucial MX500', 'Samsung', 'SanDisk',
+        'Seagate', 'Toshiba', 'Pioneer', 'LaCie', 'External'
+    ]
+    parser.add_argument('--ids', nargs='+', default=default_ids,
                         help='Identifiers for the external SSD (labels or parts of the mount path).')
+    parser.add_argument('--list', action='store_true', help='List all mounted drives.')
     parser.add_argument('--restore', action='store_true', help='Restore the original Downloads folder.')
     parser.add_argument('--dry-run', action='store_true', help='Perform a dry run without making changes.')
     parser.add_argument('--required-gb', type=int, default=500, help='Required free space in GB (default: 500).')
     
     args = parser.parse_args()
+
+    if args.list:
+        list_drives()
+        return
     
     if args.restore:
         if args.dry_run:
@@ -192,6 +244,9 @@ def main():
 
     print(f"Searching for external SSD with identifiers: {args.ids}...")
     ssd_path = find_target_ssd(args.ids)
+
+    # Check for Chrome running
+    check_chrome_running()
     
     if ssd_path:
         print(f"Found target SSD at: {ssd_path}")

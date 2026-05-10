@@ -6,7 +6,8 @@ This script automates the process of redirecting your Google Chrome downloads to
 
 - **Auto-detection**: Scans for your external SSD (e.g., WD SA500 or Crucial MX500) by its label or mount point.
 - **Improved Windows Support**: Correctly identifies drives by their Volume Label on Windows.
-- **Cross-platform**: Works on both Windows (using Directory Junctions) and Linux (using Symbolic Links).
+- **Improved macOS Support**: Specifically tested for macOS (including Apple Silicon and Intel-based Macs) and correctly identifies external volumes in `/Volumes/`.
+- **Cross-platform**: Works on Windows (Directory Junctions), Linux, and macOS (Symbolic Links).
 - **Blocking Space Check**: Verifies that your external SSD has enough free space before starting. The script will halt if space is insufficient.
 - **Easy Restoration**: Simple command to revert back to your internal Downloads folder.
 - **Safe**: Backs up your existing Downloads folder before making any changes.
@@ -24,8 +25,14 @@ pip install psutil
 ## Usage
 
 ### 1. Identify your SSD
-By default, the script looks for drives containing "WD SA500" or "Crucial MX500" in their label or mount path. If your drive has a different name, you can specify it:
+By default, the script looks for drives containing common SSD brands (Samsung, WD, Crucial, SanDisk, etc.).
 
+To see a list of all mounted drives and their identifiers:
+```bash
+python3 ssd_chrome_automator.py --list
+```
+
+If your drive has a different name or isn't detected, you can specify it manually:
 ```bash
 python3 ssd_chrome_automator.py --ids "MySSDName" "ExternalDrive"
 ```
@@ -55,6 +62,9 @@ When you are done and want to go back to using your internal SSD:
 ```bash
 python3 ssd_chrome_automator.py --restore
 ```
+
+### macOS Specifics
+On macOS, you might need to grant your Terminal or IDE **Full Disk Access** in *System Settings > Privacy & Security* to allow the script to modify folders in your home directory.
 
 ## How it works
 
