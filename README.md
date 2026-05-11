@@ -64,7 +64,7 @@ python3 ssd_chrome_automator.py --restore
 ```
 
 ### macOS Specifics
-On macOS, you might need to grant your Terminal or IDE **Full Disk Access** in *System Settings > Privacy & Security* to allow the script to modify folders in your home directory.
+On macOS, you might need to grant your Terminal or IDE **Full Disk Access** in *System Settings > Privacy & Security*. This allows the script to modify folders in your home directory. If you encounter a "Permission Denied" error, this is usually the cause, as macOS is very protective of the Downloads folder.
 
 ## How it works
 
