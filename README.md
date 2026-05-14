@@ -16,10 +16,11 @@ This script automates the process of redirecting your Google Chrome downloads to
 
 - Python 3.x
 - `psutil` library
+- `watchdog` library (for Watchdog Mode)
 
 To install requirements:
 ```bash
-pip install psutil
+pip install -r requirements.txt
 ```
 
 ## Usage
@@ -62,6 +63,24 @@ When you are done and want to go back to using your internal SSD:
 ```bash
 python3 ssd_chrome_automator.py --restore
 ```
+
+## Watchdog Mode (macOS)
+
+Watchdog Mode is an alternative to full redirection. Instead of linking your entire `Downloads` folder, it monitors the folder and selectively moves large files or specific gaming ISOs to your SSD.
+
+### 1. Manual Run
+```bash
+python3 watchdog_mover.py
+```
+
+### 2. Automatic Background Service (Phase 2)
+To have the watchdog start automatically whenever you plug in your "Test" drive:
+
+```bash
+python3 install_watchdog.py
+```
+
+This installs a `launchd` agent that watches `/Volumes`. When a drive is mounted, it wakes up and starts monitoring your downloads.
 
 ### macOS Specifics
 On macOS, you might need to grant your Terminal, IDE, or **Gemini CLI** (often running via node/python) **Full Disk Access** in *System Settings > Privacy & Security*. This allows the script to modify folders in your home directory. If you encounter a "Permission Denied" error, this is usually the cause.
