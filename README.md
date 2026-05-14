@@ -64,7 +64,29 @@ python3 ssd_chrome_automator.py --restore
 ```
 
 ### macOS Specifics
-On macOS, you might need to grant your Terminal or IDE **Full Disk Access** in *System Settings > Privacy & Security*. This allows the script to modify folders in your home directory. If you encounter a "Permission Denied" error, this is usually the cause, as macOS is very protective of the Downloads folder.
+On macOS, you might need to grant your Terminal, IDE, or **Gemini CLI** (often running via node/python) **Full Disk Access** in *System Settings > Privacy & Security*. This allows the script to modify folders in your home directory. If you encounter a "Permission Denied" error, this is usually the cause.
+
+## Gemini CLI Integration
+
+You can use **Gemini CLI** to automate the setup and trigger downloads directly to your SSD. This is perfect for remote management or hands-free setup.
+
+### Example: Downloading a GameCube ISO
+In this example, we use Gemini CLI to redirect the system downloads and then download a large ISO file (Dokapon DX) directly to the SSD.
+
+1.  **Ask Gemini to set up the tool:**
+    > "Hey Gemini, can you run the SSD Chrome Automator script for me? My SSD is named 'Test'."
+
+2.  **Verify or Grant Permissions:**
+    Gemini will check for your drive. If it hits a "Permission Denied" error on macOS, it can open the settings for you:
+    > "Gemini, open the Full Disk Access settings so I can enable it for you."
+
+3.  **Download the file:**
+    Once redirected, tell Gemini to download the ISO:
+    > "Download this ISO directly to my external SSD: https://archive.org/.../Dokapon%20DX.iso"
+
+4.  **How it happened behind the scenes:**
+    - Gemini ran `python3 ssd_chrome_automator.py` to link `~/Downloads` to `/Volumes/Test/SSD_Downloads`.
+    - Gemini used `curl -L` to stream the file directly to the SSD path, ensuring no space was taken from the internal disk.
 
 ## How it works
 
